@@ -1,0 +1,1082 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Player = Players.LocalPlayer
+
+local IntroGui = Instance.new("ScreenGui")
+IntroGui.Name = "SoiectyIntro"
+IntroGui.ResetOnSpawn = false
+IntroGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+IntroGui.IgnoreGuiInset = true
+IntroGui.Parent = Player:WaitForChild("PlayerGui")
+
+local Background = Instance.new("Frame")
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.Position = UDim2.new(0, 0, 0, 0)
+Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Background.BackgroundTransparency = 0
+Background.BorderSizePixel = 0
+Background.ZIndex = 1
+Background.Parent = IntroGui
+
+local WelcomeText = Instance.new("TextLabel")
+WelcomeText.Size = UDim2.new(0.9, 0, 0, 80)
+WelcomeText.Position = UDim2.new(0.5, 0, 0.38, 0)
+WelcomeText.AnchorPoint = Vector2.new(0.5, 0.5)
+WelcomeText.BackgroundTransparency = 1
+WelcomeText.Text = "Welcome to Soiecty"
+WelcomeText.TextColor3 = Color3.fromRGB(255, 255, 255)
+WelcomeText.TextTransparency = 1
+WelcomeText.Font = Enum.Font.GothamBold
+WelcomeText.TextSize = 52
+WelcomeText.ZIndex = 2
+WelcomeText.Parent = IntroGui
+
+local UserText = Instance.new("TextLabel")
+UserText.Size = UDim2.new(0.9, 0, 0, 60)
+UserText.Position = UDim2.new(0.5, 0, 0.58, 0)
+UserText.AnchorPoint = Vector2.new(0.5, 0.5)
+UserText.BackgroundTransparency = 1
+UserText.Text = "Welcome, <font color='#00ff00'>" .. Player.Name .. "</font>"
+UserText.RichText = true
+UserText.TextColor3 = Color3.fromRGB(200, 200, 200)
+UserText.TextTransparency = 1
+UserText.Font = Enum.Font.Gotham
+UserText.TextSize = 36
+UserText.ZIndex = 2
+UserText.Parent = IntroGui
+
+task.spawn(function()
+    TweenService:Create(WelcomeText, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+    task.wait(0.3)
+    TweenService:Create(UserText, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+    task.wait(3.2)
+    TweenService:Create(WelcomeText, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
+    TweenService:Create(UserText, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {TextTransparency = 1}):Play()
+    TweenService:Create(Background, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency = 1}):Play()
+    task.wait(0.6)
+    IntroGui:Destroy()
+
+    local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/8baq/Library.lua/refs/heads/main/BlaqsLib"))()
+    local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/blaqusesgpt/Gui/refs/heads/main/LinoriaTheme"))()
+    local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/8baq/Library.lua/refs/heads/main/SaveManager"))()
+
+    local game_name = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+
+    -- ============================================================
+    --  getgenv TABLE
+    -- ============================================================
+    getgenv().Soiecty = {
+        AimbotEnabled     = true,
+        ArcMode           = "High Arc",
+        ShotDelay         = 0.3,
+        XOffsetEnabled    = false,
+        XOffset           = 55,
+        YOffset           = 0,
+        RangeIndicator    = false,
+        IndicatorColor    = Color3.fromRGB(0, 255, 0),
+        SpeedEnabled      = false,
+        SpeedBoost        = 0,
+        MagnetEnabled     = false,
+        MagnetDistance    = 5,
+        AutoGuardEnabled  = false,
+        GuardMode         = "Guard Player",
+        NearBallMode      = false,
+        GuardPrediction   = 16,
+        AntiTravelEnabled = false,
+        AntiFallEnabled   = false,
+        AutoDunkEnabled   = false,
+        DeviceSpoofEnabled = false,
+        SelectedDevice    = "PC",
+    }
+    local S = getgenv().Soiecty
+
+    local RunService          = game:GetService("RunService")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    local ReplicatedStorage   = game:GetService("ReplicatedStorage")
+    local UserInputService    = game:GetService("UserInputService")
+
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local Humanoid  = Character:WaitForChild("Humanoid")
+    local Camera    = workspace.CurrentCamera
+
+    -- ============================================================
+    --  ARC TABLES
+    -- ============================================================
+    local function GetHighArc(dist)
+        return ({
+            [20]=147,[21]=144,[22]=141,[23]=139,[24]=137,
+            [25]=135,[26]=132,[27]=130,[28]=127,[29]=124,
+            [30]=121,[31]=119,[32]=117,[33]=115,[34]=112,
+            [35]=109,[36]=109,[37]=108,[38]=108,[39]=108,
+            [40]=108,[41]=107,[42]=106,[43]=105,[44]=104,
+            [45]=103,[46]=102,[47]=101,[48]=103,[49]=103,
+            [50]=102,[51]=102,[52]=100,[53]=100,[54]=101,
+            [55]=98,[56]=96,[57]=94,[58]=94,[59]=89,
+            [60]=89,[61]=89,[62]=89,[63]=85,[64]=83,
+            [65]=83,[66]=78,[67]=78,[68]=72,[69]=72,
+            [70]=66,[71]=63,[72]=62,[73]=62,
+        })[dist] or 0
+    end
+
+    local function GetLowArc(dist)
+        return ({
+            [20]=20,[21]=22,[22]=24,[23]=24,[24]=25,
+            [25]=25,[26]=26,[27]=26,[28]=27,[29]=27,
+            [30]=28,[31]=28,[32]=28,[33]=29,[34]=29,
+            [35]=29,[36]=30,[37]=30,[38]=30,[39]=31,
+            [40]=31,[41]=32,[42]=32,[43]=33,[44]=33,
+            [45]=33,[46]=34,[47]=34,[48]=35,[49]=35,
+            [50]=36,[51]=38,[52]=40,[53]=42,[54]=44,
+            [55]=46,[56]=46,[57]=44,[58]=42,[59]=38,
+            [60]=34,[61]=64,[62]=60,[63]=56,[64]=52,
+            [65]=48,[66]=44,[67]=40,[68]=66,[69]=62,
+            [70]=58,[71]=54,[72]=50,[73]=46,
+        })[dist] or 0
+    end
+
+    local function GetLowArcPower(d)
+        return d<=12 and 30 or d<=16 and 35 or d<=21 and 40 or d<=26 and 45
+            or d<=31 and 50 or d<=36 and 55 or d<=41 and 60 or d<=46 and 65
+            or d<=50 and 70 or d<=60 and 75 or d<=67 and 80 or d<=74 and 85 or 75
+    end
+
+    -- ============================================================
+    --  GOAL FINDER
+    -- ============================================================
+    local function GetEnemyGoal()
+        local CharPos = Character.PrimaryPart and Character.PrimaryPart.Position
+        if not CharPos then return nil, math.huge end
+        local nearestCourt, nearestCourtDist = nil, math.huge
+        for _, container in next, {workspace:FindFirstChild("Courts"), workspace:FindFirstChild("PracticeArea")} do
+            if container then
+                for _, court in next, container:GetChildren() do
+                    for _, Obj in next, court:GetDescendants() do
+                        if Obj.Name == "Swish" and Obj.Parent:FindFirstChildOfClass("TouchTransmitter") then
+                            local d = (CharPos - Obj.Parent.Position).Magnitude
+                            if d < nearestCourtDist then nearestCourtDist = d nearestCourt = court end
+                        end
+                    end
+                end
+            end
+        end
+        if not nearestCourt then return nil, math.huge end
+        local hoops = {}
+        for _, Obj in next, nearestCourt:GetDescendants() do
+            if Obj.Name == "Swish" and Obj.Parent:FindFirstChildOfClass("TouchTransmitter") then
+                table.insert(hoops, Obj.Parent)
+            end
+        end
+        if #hoops == 0 then return nil, math.huge end
+        local enemyHoop, maxDist = nil, -math.huge
+        for _, hoop in ipairs(hoops) do
+            local d = (CharPos - hoop.Position).Magnitude
+            if d > maxDist then maxDist = d enemyHoop = hoop end
+        end
+        return enemyHoop, maxDist
+    end
+
+    local function IsHoldingBasketball()
+        local b = Character:FindFirstChild("Basketball")
+        return b and b:FindFirstChild("Ball")
+    end
+
+    local function GetVelocity()
+        local hrp = Character:FindFirstChild("HumanoidRootPart")
+        return hrp and hrp.Velocity or Vector3.zero
+    end
+
+    -- ============================================================
+    --  SHOOT
+    -- ============================================================
+    local function performClick()
+        local vs = Camera.ViewportSize
+        local cx = vs.X / 2 + (S.XOffsetEnabled and S.XOffset or 0)
+        local cy = vs.Y / 2 + S.YOffset
+        VirtualInputManager:SendMouseButtonEvent(cx, cy, 0, true,  game, 1)
+        task.wait()
+        VirtualInputManager:SendMouseButtonEvent(cx, cy, 0, false, game, 1)
+    end
+
+    local function shootHighArc(Goal, Distance)
+        local d = math.floor(Distance + 0.5)
+        if d < 20 or d > 73 then return end
+        local oldCF, oldCT = Camera.CFrame, Camera.CameraType
+        Player:SetAttribute("Power", 85)
+        Camera.CameraType = Enum.CameraType.Scriptable
+        Camera.CFrame = CFrame.new(Character.Head.Position, Goal.Position + Vector3.new(0, GetHighArc(d), 0) + GetVelocity() * 0.05)
+        task.wait(0.01) performClick() task.wait(0.01)
+        Camera.CameraType = oldCT
+        Camera.CFrame = oldCF
+    end
+
+    local function shootLowArc(Goal, Distance)
+        local d = math.floor(Distance + 0.5)
+        if d < 20 or d > 73 then return end
+        local oldCF, oldCT = Camera.CFrame, Camera.CameraType
+        Player:SetAttribute("Power", GetLowArcPower(d))
+        Camera.CameraType = Enum.CameraType.Scriptable
+        Camera.CFrame = CFrame.new(Character.Head.Position, Goal.Position + Vector3.new(0, GetLowArc(d), 0) + GetVelocity() * 0.05)
+        task.wait(0.01) performClick() task.wait(0.01)
+        Camera.CameraType = oldCT
+        Camera.CFrame = oldCF
+    end
+
+    local function AdjustCameraForJump()
+        if not S.AimbotEnabled then return end
+        if not IsHoldingBasketball() then return end
+        local Goal, Distance = GetEnemyGoal()
+        if not Goal then return end
+        if S.ArcMode == "High Arc" then shootHighArc(Goal, Distance)
+        else shootLowArc(Goal, Distance) end
+    end
+
+    Humanoid.StateChanged:Connect(function(_, NewState)
+        if NewState == Enum.HumanoidStateType.Jumping then
+            task.wait(S.ShotDelay)
+            AdjustCameraForJump()
+        end
+    end)
+
+    -- ============================================================
+    --  RANGE INDICATOR
+    -- ============================================================
+    local highlight = Instance.new("Highlight")
+    highlight.FillTransparency    = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Enabled             = false
+    highlight.Parent              = Character
+
+    local _lastIndUpdate = 0
+    RunService.Heartbeat:Connect(function()
+        local now = tick()
+        if now - _lastIndUpdate < 0.2 then return end
+        _lastIndUpdate = now
+        if not S.RangeIndicator or not IsHoldingBasketball() then
+            highlight.Enabled = false return
+        end
+        if not Character:FindFirstChild("HumanoidRootPart") then return end
+        local _, dist = GetEnemyGoal()
+        local d = dist and math.floor(dist + 0.5)
+        local inRange = d and d >= 20 and d <= 73
+        highlight.Enabled = inRange or false
+        if inRange then
+            highlight.FillColor    = S.IndicatorColor
+            highlight.OutlineColor = S.IndicatorColor
+        end
+    end)
+
+    -- ============================================================
+    --  SPEED
+    -- ============================================================
+    local speedConn
+    local function applySpeed()
+        if speedConn then speedConn:Disconnect() speedConn = nil end
+        if not S.SpeedEnabled then return end
+        local hrp = Character:FindFirstChild("HumanoidRootPart")
+        speedConn = RunService.Heartbeat:Connect(function(dt)
+            if not S.SpeedEnabled or not Humanoid or not hrp then return end
+            local move = Humanoid.MoveDirection
+            if move.Magnitude > 0 then
+                local scaled = (math.clamp(S.SpeedBoost, 0, 5) / 10) * 10
+                Humanoid:Move(move.Unit, true)
+                hrp.CFrame = hrp.CFrame + move.Unit * scaled * dt
+            end
+        end)
+    end
+
+    -- ============================================================
+    --  MAGNET
+    -- ============================================================
+    local MagConn, _lastMagTime = nil, 0
+    local function runMag()
+        if MagConn then MagConn:Disconnect() MagConn = nil end
+        MagConn = RunService.Heartbeat:Connect(function()
+            if not S.MagnetEnabled then return end
+            local now = tick()
+            if now - _lastMagTime < 0.05 then return end
+            _lastMagTime = now
+            local hrp = Character:FindFirstChild("HumanoidRootPart")
+            if not hrp then return end
+            local parts = workspace:GetPartBoundsInBox(hrp.CFrame, Vector3.new(S.MagnetDistance, S.MagnetDistance, S.MagnetDistance))
+            local nearest, minDist = nil, S.MagnetDistance
+            for _, part in ipairs(parts) do
+                if part:IsA("BasePart") and part.Name:lower() == "ball" then
+                    local d = (part.Position - hrp.Position).Magnitude
+                    if d <= minDist then minDist = d nearest = part end
+                end
+            end
+            if nearest then
+                pcall(function()
+                    firetouchinterest(hrp, nearest, 0)
+                    task.wait(0.05)
+                    firetouchinterest(hrp, nearest, 1)
+                end)
+            end
+        end)
+    end
+    local function stopMag()
+        if MagConn then MagConn:Disconnect() MagConn = nil end
+    end
+
+    -- ============================================================
+    --  ANTI TRAVEL  (from working script)
+    -- ============================================================
+    local cachedJumpCons = {}
+
+    local function cacheExistingJumpCons(hum)
+        local list = {}
+        pcall(function()
+            for _, c in ipairs(getconnections(hum.Jumping)) do
+                table.insert(list, c)
+            end
+        end)
+        cachedJumpCons[hum] = list
+    end
+
+    local function disableCachedJumpCons(hum)
+        local list = cachedJumpCons[hum]
+        if not list then return end
+        for _, c in ipairs(list) do pcall(function() c:Disable() end) end
+    end
+
+    local function enableCachedJumpCons(hum)
+        local list = cachedJumpCons[hum]
+        if not list then return end
+        for _, c in ipairs(list) do pcall(function() c:Enable() end) end
+        cachedJumpCons[hum] = nil
+    end
+
+    local function setAntiTravel(on)
+        local hum = Character:FindFirstChildOfClass("Humanoid")
+        if not hum then return end
+        if on then
+            cacheExistingJumpCons(hum)
+            disableCachedJumpCons(hum)
+        else
+            enableCachedJumpCons(hum)
+        end
+    end
+
+    -- ============================================================
+    --  ANTI FALL  (from working script - invisible box on heads)
+    -- ============================================================
+    local antiFallThread = nil
+    local antiFallBoxes  = {}
+
+    local function startAntiFall()
+        if antiFallThread then return end
+        antiFallThread = task.spawn(function()
+            while S.AntiFallEnabled do
+                local myHRP = Character:FindFirstChild("HumanoidRootPart")
+                if myHRP then
+                    -- collect 3 closest players
+                    local sorted = {}
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        if plr ~= Player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                            table.insert(sorted, {
+                                player = plr,
+                                dist   = (myHRP.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                            })
+                        end
+                    end
+                    table.sort(sorted, function(a, b) return a.dist < b.dist end)
+                    local closest = {}
+                    for i = 1, math.min(3, #sorted) do table.insert(closest, sorted[i].player) end
+
+                    -- remove boxes for players no longer in range
+                    for plr in pairs(antiFallBoxes) do
+                        local keep = false
+                        for _, cp in ipairs(closest) do if plr == cp then keep = true break end end
+                        if not keep then antiFallBoxes[plr]:Destroy() antiFallBoxes[plr] = nil end
+                    end
+
+                    -- create / update boxes
+                    for _, cp in ipairs(closest) do
+                        local head = cp.Character:FindFirstChild("Head")
+                        if head then
+                            if not antiFallBoxes[cp] then
+                                local box = Instance.new("Part")
+                                box.Name        = "AntiFallBox"
+                                box.Size        = Vector3.new(3, 3, 3)
+                                box.Transparency = 1
+                                box.Anchored    = true
+                                box.CanCollide  = true
+                                box.Material    = Enum.Material.SmoothPlastic
+                                box.CFrame      = head.CFrame
+                                box.Parent      = workspace
+                                antiFallBoxes[cp] = box
+                            else
+                                antiFallBoxes[cp].CFrame = head.CFrame
+                            end
+                        end
+                    end
+                end
+                task.wait(0.1)
+            end
+        end)
+    end
+
+    local function stopAntiFall()
+        S.AntiFallEnabled = false
+        if antiFallThread then task.cancel(antiFallThread) antiFallThread = nil end
+        for _, box in pairs(antiFallBoxes) do box:Destroy() end
+        antiFallBoxes = {}
+    end
+
+    -- ============================================================
+    --  AUTO DUNK  (from working script - big head method)
+    -- ============================================================
+    local normalHeadSize = Vector3.new(2, 1, 1)
+    local dunkHeadSize   = 50
+    local dunkRange      = 30
+    local dunkSpeed      = 1000
+
+    local function makeFakeHead(char, realHead)
+        local fakeHead = char:FindFirstChild("FakeHead")
+        if not fakeHead then
+            fakeHead          = realHead:Clone()
+            fakeHead.Name     = "FakeHead"
+            fakeHead.Size     = normalHeadSize
+            fakeHead.CanCollide = false
+            fakeHead.Massless = true
+            fakeHead.Anchored = false
+            fakeHead.Parent   = char
+            local weld  = Instance.new("WeldConstraint")
+            weld.Part0  = realHead
+            weld.Part1  = fakeHead
+            weld.Parent = fakeHead
+        end
+        return fakeHead
+    end
+
+    local function updateDunkHead(hasBall)
+        local head = Character:FindFirstChild("Head")
+        if not head then return end
+        local fakeHead = makeFakeHead(Character, head)
+        if hasBall and S.AutoDunkEnabled then
+            head.Size        = Vector3.new(dunkHeadSize, dunkHeadSize, dunkHeadSize)
+            head.Transparency = 1
+            head.CanCollide  = false
+            head.Massless    = true
+            fakeHead.Size    = normalHeadSize
+            fakeHead.Transparency = 0
+        else
+            head.Size        = normalHeadSize
+            head.Transparency = 0
+            head.CanCollide  = true
+            head.Massless    = false
+            if fakeHead then fakeHead.Transparency = 1 end
+        end
+    end
+
+    task.spawn(function()
+        while true do
+            task.wait(0.05)
+            local hasBall = Character:FindFirstChild("Basketball") ~= nil
+            updateDunkHead(hasBall)
+            if hasBall and S.AutoDunkEnabled then
+                local head = Character:FindFirstChild("Head")
+                local hoop = workspace:FindFirstChild("Hoop")
+                if head and hoop and (head.Position - hoop.Position).Magnitude <= dunkRange then
+                    local bv = Instance.new("BodyVelocity")
+                    bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+                    bv.Velocity = (hoop.Position - head.Position).Unit * dunkSpeed
+                    bv.Parent   = Character.Basketball
+                    game:GetService("Debris"):AddItem(bv, 0.1)
+                end
+            end
+        end
+    end)
+
+    -- ============================================================
+    --  AUTO GUARD  (FIXED - guards closest player properly)
+    -- ============================================================
+    local autoGuardRunning = false
+    local autoGuardThread  = nil
+
+    -- returns closest player regardless of ball, for Guard Player mode
+    local function getClosestPlayer()
+        local myHRP = Character:FindFirstChild("HumanoidRootPart")
+        if not myHRP then return nil end
+        local closest, closestDist = nil, math.huge
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= Player and plr.Character then
+                local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local d = (myHRP.Position - hrp.Position).Magnitude
+                    local range = S.NearBallMode and 20 or 80
+                    if d < closestDist and d <= range then
+                        closestDist = d
+                        closest     = plr
+                    end
+                end
+            end
+        end
+        return closest
+    end
+
+    -- returns closest player holding ball, for Guard Ball mode
+    local function getClosestBallHandler()
+        local myHRP = Character:FindFirstChild("HumanoidRootPart")
+        if not myHRP then return nil end
+        local closest, closestDist = nil, math.huge
+        for _, plr in ipairs(Players:GetPlayers()) do
+            if plr ~= Player and plr.Character and plr.Character:FindFirstChild("Basketball") then
+                local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local d = (myHRP.Position - hrp.Position).Magnitude
+                    local range = S.NearBallMode and 20 or 80
+                    if d < closestDist and d <= range then
+                        closestDist = d
+                        closest     = plr
+                    end
+                end
+            end
+        end
+        return closest
+    end
+
+    local function agWalkTo(pos)
+        local hum = Character:FindFirstChild("Humanoid")
+        if not hum then return end
+        if not pos then hum:Move(Vector3.zero, false) return end
+        hum:MoveTo(pos)
+    end
+
+    local function startAutoGuard()
+        if autoGuardRunning then return end
+        autoGuardRunning = true
+        autoGuardThread = task.spawn(function()
+            while S.AutoGuardEnabled do
+                task.wait(0.15)
+
+                if Character:FindFirstChild("Basketball") then
+                    -- I have the ball, stop guarding
+                    agWalkTo(nil)
+                else
+                    local target = nil
+
+                    if S.GuardMode == "Guard Player" then
+                        -- guard the closest player (anyone)
+                        target = getClosestPlayer()
+                    else
+                        -- guard the closest ball carrier
+                        target = getClosestBallHandler()
+                    end
+
+                    if target and target.Character then
+                        local hrp = target.Character:FindFirstChild("HumanoidRootPart")
+                        local hum2 = target.Character:FindFirstChild("Humanoid")
+                        if hrp and hum2 then
+                            -- walk slightly in front of them based on prediction
+                            local predicted = hrp.Position + (hum2.MoveDirection * S.GuardPrediction)
+                            agWalkTo(predicted)
+                        end
+                    else
+                        agWalkTo(nil)
+                    end
+                end
+            end
+            agWalkTo(nil)
+            autoGuardRunning = false
+        end)
+    end
+
+    local function stopAutoGuard()
+        S.AutoGuardEnabled = false
+        agWalkTo(nil)
+        if autoGuardThread then task.cancel(autoGuardThread) autoGuardThread = nil end
+        autoGuardRunning = false
+    end
+
+    -- ============================================================
+    --  AUTO GUARD FLOATING BUTTON
+    -- ============================================================
+    local AgGui = Instance.new("ScreenGui")
+    AgGui.Name          = "SoiectyAutoGuardGui"
+    AgGui.ResetOnSpawn  = false
+    AgGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    AgGui.Enabled       = false
+    AgGui.Parent        = Player:WaitForChild("PlayerGui")
+
+    local AgGlow = Instance.new("Frame")
+    AgGlow.Size                  = UDim2.new(0, 140, 0, 58)
+    AgGlow.Position              = UDim2.new(0.5, -70, 0, 80)
+    AgGlow.BackgroundColor3      = Color3.fromRGB(200, 50, 50)
+    AgGlow.BackgroundTransparency = 0.6
+    AgGlow.BorderSizePixel       = 0
+    AgGlow.Parent                = AgGui
+    Instance.new("UICorner", AgGlow).CornerRadius = UDim.new(0, 16)
+
+    local AgBtn = Instance.new("TextButton")
+    AgBtn.Size            = UDim2.new(0, 130, 0, 48)
+    AgBtn.Position        = UDim2.new(0.5, 0, 0.5, 0)
+    AgBtn.AnchorPoint     = Vector2.new(0.5, 0.5)
+    AgBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
+    AgBtn.BorderSizePixel = 0
+    AgBtn.Text            = ""
+    AgBtn.AutoButtonColor = false
+    AgBtn.ZIndex          = 2
+    AgBtn.Parent          = AgGlow
+    Instance.new("UICorner", AgBtn).CornerRadius = UDim.new(0, 13)
+
+    local AgStroke = Instance.new("UIStroke")
+    AgStroke.Thickness        = 2.5
+    AgStroke.Color            = Color3.fromRGB(200, 50, 50)
+    AgStroke.ApplyStrokeMode  = Enum.ApplyStrokeMode.Border
+    AgStroke.Parent           = AgBtn
+
+    local AgIcon = Instance.new("TextLabel")
+    AgIcon.Size               = UDim2.new(0, 28, 1, 0)
+    AgIcon.Position           = UDim2.new(0, 8, 0, 0)
+    AgIcon.BackgroundTransparency = 1
+    AgIcon.Text               = "🛡️"
+    AgIcon.TextScaled         = true
+    AgIcon.ZIndex             = 3
+    AgIcon.Parent             = AgBtn
+
+    local AgStatusText = Instance.new("TextLabel")
+    AgStatusText.Size             = UDim2.new(1, -42, 0, 14)
+    AgStatusText.Position         = UDim2.new(0, 38, 0, 6)
+    AgStatusText.BackgroundTransparency = 1
+    AgStatusText.Text             = "AUTO GUARD"
+    AgStatusText.TextColor3       = Color3.fromRGB(200, 200, 220)
+    AgStatusText.Font             = Enum.Font.GothamBold
+    AgStatusText.TextSize         = 10
+    AgStatusText.TextXAlignment   = Enum.TextXAlignment.Left
+    AgStatusText.ZIndex           = 3
+    AgStatusText.Parent           = AgBtn
+
+    local AgStateLabel = Instance.new("TextLabel")
+    AgStateLabel.Size             = UDim2.new(1, -42, 0, 18)
+    AgStateLabel.Position         = UDim2.new(0, 38, 0, 20)
+    AgStateLabel.BackgroundTransparency = 1
+    AgStateLabel.Text             = "OFF"
+    AgStateLabel.TextColor3       = Color3.fromRGB(255, 80, 80)
+    AgStateLabel.Font             = Enum.Font.GothamBold
+    AgStateLabel.TextSize         = 14
+    AgStateLabel.TextXAlignment   = Enum.TextXAlignment.Left
+    AgStateLabel.ZIndex           = 3
+    AgStateLabel.Parent           = AgBtn
+
+    local AgLockLabel = Instance.new("TextLabel")
+    AgLockLabel.Size              = UDim2.new(0, 16, 0, 16)
+    AgLockLabel.Position          = UDim2.new(1, -20, 0, 4)
+    AgLockLabel.BackgroundTransparency = 1
+    AgLockLabel.Text              = "🔓"
+    AgLockLabel.TextScaled        = true
+    AgLockLabel.ZIndex            = 5
+    AgLockLabel.Parent            = AgBtn
+
+    local function updateAgButton()
+        if S.AutoGuardEnabled then
+            AgStateLabel.Text       = "ON"
+            AgStateLabel.TextColor3 = Color3.fromRGB(80, 255, 120)
+            TweenService:Create(AgGlow, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(50, 200, 100)}):Play()
+            TweenService:Create(AgStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(50, 200, 100)}):Play()
+        else
+            AgStateLabel.Text       = "OFF"
+            AgStateLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+            TweenService:Create(AgGlow, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}):Play()
+            TweenService:Create(AgStroke, TweenInfo.new(0.3), {Color = Color3.fromRGB(200, 50, 50)}):Play()
+        end
+    end
+
+    task.spawn(function()
+        local t = 0
+        while AgBtn and AgBtn.Parent do
+            t = t + 0.06
+            if not S.AutoGuardEnabled then
+                pcall(function()
+                    local r = 200 + math.sin(t * 2) * 40
+                    local g = 50  + math.sin(t * 2 + 1) * 20
+                    AgStroke.Color            = Color3.fromRGB(math.clamp(r,0,255), math.clamp(g,0,255), 80)
+                    AgGlow.BackgroundColor3   = Color3.fromRGB(math.clamp(r,0,255), math.clamp(g,0,255), 80)
+                end)
+            end
+            task.wait(0.06)
+        end
+    end)
+
+    local agDragging, agDragInput, agDragStart, agStartPos = false, nil, nil, nil
+    local agInputStartTime, agDidDrag, agIsLocked = 0, false, false
+    local agHoldThreshold = 0.5
+
+    AgBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            agInputStartTime = tick()
+            agDidDrag = false
+            task.delay(agHoldThreshold, function()
+                if not agDidDrag then
+                    agIsLocked = not agIsLocked
+                    AgLockLabel.Text = agIsLocked and "🔒" or "🔓"
+                    TweenService:Create(AgBtn, TweenInfo.new(0.1), {Size = UDim2.new(0, 140, 0, 52)}):Play()
+                    task.wait(0.12)
+                    TweenService:Create(AgBtn, TweenInfo.new(0.1), {Size = UDim2.new(0, 130, 0, 48)}):Play()
+                end
+            end)
+            if not agIsLocked then
+                agDragging = true
+                agDragStart = input.Position
+                agStartPos  = AgGlow.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then agDragging = false end
+                end)
+            end
+        end
+    end)
+
+    AgBtn.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            agDragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == agDragInput and agDragging and not agIsLocked then
+            local delta = input.Position - agDragStart
+            if delta.Magnitude > 5 then agDidDrag = true end
+            AgGlow.Position = UDim2.new(
+                agStartPos.X.Scale, agStartPos.X.Offset + delta.X,
+                agStartPos.Y.Scale, agStartPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    AgBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local held = tick() - agInputStartTime
+            agDragging = false
+            if held < agHoldThreshold and not agDidDrag then
+                S.AutoGuardEnabled = not S.AutoGuardEnabled
+                updateAgButton()
+                TweenService:Create(AgBtn, TweenInfo.new(0.1, Enum.EasingStyle.Back), {Size = UDim2.new(0, 118, 0, 42)}):Play()
+                task.wait(0.1)
+                TweenService:Create(AgBtn, TweenInfo.new(0.15, Enum.EasingStyle.Back), {Size = UDim2.new(0, 130, 0, 48)}):Play()
+                if S.AutoGuardEnabled then
+                    startAutoGuard()
+                    Library:Notify("Auto Guard ON | " .. S.GuardMode)
+                else
+                    stopAutoGuard()
+                    Library:Notify("Auto Guard disabled")
+                end
+            end
+        end
+    end)
+
+    -- ============================================================
+    --  TOGGLE BUTTON
+    -- ============================================================
+    local ToggleGui = Instance.new("ScreenGui")
+    ToggleGui.Name          = "UIToggle"
+    ToggleGui.ResetOnSpawn  = false
+    ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ToggleGui.Parent        = game.CoreGui
+
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Size                  = UDim2.new(0, 70, 0, 50)
+    ToggleButton.Position              = UDim2.new(1, -110, 0, 10)
+    ToggleButton.BackgroundColor3      = Color3.fromRGB(10, 10, 10)
+    ToggleButton.BackgroundTransparency = 0.2
+    ToggleButton.TextColor3            = Color3.fromRGB(255, 255, 255)
+    ToggleButton.Text                  = "Hide UI"
+    ToggleButton.Font                  = Enum.Font.Code
+    ToggleButton.TextSize              = 14
+    ToggleButton.Parent                = ToggleGui
+
+    local Outline = Instance.new("UIStroke")
+    Outline.Color           = Color3.fromRGB(255, 255, 255)
+    Outline.Thickness       = 1
+    Outline.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    Outline.Parent          = ToggleButton
+    Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 10)
+
+    local isVisible = true
+    ToggleButton.MouseButton1Click:Connect(function()
+        if Library and Library.Toggle then
+            Library:Toggle()
+            isVisible = not isVisible
+            ToggleButton.Text = isVisible and "Hide UI" or "Show UI"
+        end
+    end)
+
+    -- ============================================================
+    --  WINDOW
+    -- ============================================================
+    local window = Library:CreateWindow({
+        Title    = 'Soiecty | ' .. game_name,
+        Center   = true,
+        AutoShow = true,
+        Size     = UDim2.new(0, 550, 0, 350)
+    })
+
+    local tabs = {
+        main   = window:AddTab('Main'),
+        misc   = window:AddTab('Misc'),
+        config = window:AddTab('Config')
+    }
+
+    local AimbotSection       = tabs.main:AddLeftGroupbox("Aimbot")
+    local RangeSection        = tabs.main:AddLeftGroupbox("Range Indicator")
+    local MiscSection         = tabs.main:AddRightGroupbox("Miscellaneous")
+    local MagSection          = tabs.main:AddRightGroupbox("Magnet")
+    local AutoGuardSection    = tabs.misc:AddLeftGroupbox("Auto Guard")
+    local VisualsSection      = tabs.misc:AddRightGroupbox("Visuals")
+    local SpeedSection        = tabs.misc:AddRightGroupbox("Walk Speed")
+
+    -- ============================================================
+    --  AIMBOT UI
+    -- ============================================================
+    AimbotSection:AddToggle('EnableAimbot', {
+        Text     = 'Enable Aimbot',
+        Default  = S.AimbotEnabled,
+        Callback = function(v) S.AimbotEnabled = v
+            Library:Notify("Aimbot " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    AimbotSection:AddDropdown('ArcMode', {
+        Text     = 'Arc Mode',
+        Values   = {"High Arc", "Low Arc"},
+        Default  = S.ArcMode,
+        Multi    = false,
+        Callback = function(v) S.ArcMode = v
+            Library:Notify("Arc: " .. v)
+        end
+    })
+
+    AimbotSection:AddSlider('ShotDelay', {
+        Text     = 'Shot Delay',
+        Min      = 0.1, Max = 0.6, Default = S.ShotDelay,
+        Rounding = 2, Compact = false,
+        Callback = function(v) S.ShotDelay = v end
+    })
+
+    AimbotSection:AddToggle('EnableXOffset', {
+        Text     = 'Enable X Offset',
+        Default  = S.XOffsetEnabled,
+        Callback = function(v) S.XOffsetEnabled = v
+            Library:Notify("X Offset " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    AimbotSection:AddInput('XOffset', {
+        Text     = 'X Offset',
+        Default  = tostring(S.XOffset),
+        Numeric  = true, Finished = false,
+        Callback = function(v)
+            local n = tonumber(v)
+            if n then S.XOffset = n
+                Library:Notify("X Offset: " .. n)
+            end
+        end
+    })
+
+    -- ============================================================
+    --  RANGE INDICATOR UI
+    -- ============================================================
+    RangeSection:AddToggle('EnableShotIndicator', {
+        Text     = 'Enable Range Indicator',
+        Default  = S.RangeIndicator,
+        Callback = function(v)
+            S.RangeIndicator = v
+            if not v then highlight.Enabled = false end
+            Library:Notify("Range Indicator " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    RangeSection:AddLabel('Indicator Color'):AddColorPicker('IndicatorColor', {
+        Default  = S.IndicatorColor,
+        Title    = 'Indicator Color',
+        Callback = function(v)
+            S.IndicatorColor       = v
+            highlight.FillColor    = v
+            highlight.OutlineColor = v
+        end,
+    })
+
+    -- ============================================================
+    --  DEVICE SPOOFER UI
+    -- ============================================================
+    MiscSection:AddToggle('EnableDeviceSpoofer', {
+        Text     = 'Enable Device Spoofer',
+        Default  = S.DeviceSpoofEnabled,
+        Callback = function(v)
+            S.DeviceSpoofEnabled = v
+            if v then pcall(function()
+                ReplicatedStorage.Remotes.deviceEvent:FireServer(S.SelectedDevice)
+            end) end
+        end
+    })
+
+    MiscSection:AddDropdown('SelectDevice', {
+        Text     = 'Select Device',
+        Values   = {"PC", "Mobile", "Controller"},
+        Default  = S.SelectedDevice,
+        Multi    = false,
+        Callback = function(v)
+            S.SelectedDevice = v
+            if S.DeviceSpoofEnabled then pcall(function()
+                ReplicatedStorage.Remotes.deviceEvent:FireServer(v)
+            end) end
+        end
+    })
+
+    -- ============================================================
+    --  MAGNET UI
+    -- ============================================================
+    MagSection:AddToggle('EnableMagnet', {
+        Text     = 'Enable Magnet',
+        Default  = S.MagnetEnabled,
+        Callback = function(v)
+            S.MagnetEnabled = v
+            if v then runMag() else stopMag() end
+        end
+    })
+
+    MagSection:AddSlider('MagnetDistance', {
+        Text     = 'Magnet Distance',
+        Min      = 1, Max = 150, Default = S.MagnetDistance,
+        Rounding = 1, Compact = false,
+        Callback = function(v)
+            S.MagnetDistance = v
+            if S.MagnetEnabled then stopMag() runMag() end
+        end
+    })
+
+    -- ============================================================
+    --  AUTO GUARD UI
+    -- ============================================================
+    AutoGuardSection:AddToggle('ShowAutoGuardButton', {
+        Text     = 'Show Auto Guard Button',
+        Default  = false,
+        Callback = function(v)
+            AgGui.Enabled = v
+            Library:Notify("Auto Guard button " .. (v and "shown" or "hidden"))
+        end
+    })
+
+    AutoGuardSection:AddToggle('EnableAutoGuard', {
+        Text     = 'Enable Auto Guard',
+        Default  = false,
+        Callback = function(v)
+            S.AutoGuardEnabled = v
+            updateAgButton()
+            if v then startAutoGuard() Library:Notify("Auto Guard ON | " .. S.GuardMode)
+            else stopAutoGuard() Library:Notify("Auto Guard disabled") end
+        end
+    })
+
+    -- ✅ GUARD MODE DROPDOWN
+    AutoGuardSection:AddDropdown('GuardMode', {
+        Text     = 'Guard Mode',
+        Values   = {"Guard Player", "Guard Ball"},
+        Default  = S.GuardMode,
+        Multi    = false,
+        Callback = function(v)
+            S.GuardMode = v
+            Library:Notify("Guard Mode: " .. v)
+        end
+    })
+
+    AutoGuardSection:AddToggle('NearBallMode', {
+        Text     = 'Near Ball Mode',
+        Default  = false,
+        Callback = function(v)
+            S.NearBallMode = v
+            Library:Notify("Near Ball Mode " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    AutoGuardSection:AddSlider('GuardPrediction', {
+        Text     = 'Prediction',
+        Min      = 0, Max = 20, Default = S.GuardPrediction,
+        Rounding = 1, Compact = false,
+        Callback = function(v)
+            S.GuardPrediction = v
+            Library:Notify("Prediction: " .. v)
+        end
+    })
+
+    AutoGuardSection:AddLabel("Auto Guard Keybind"):AddKeyPicker("AutoGuardKeybind", {
+        Default          = "None",
+        SyncToggleState  = true,
+        Mode             = "Toggle",
+        Text             = "Auto Guard Keybind",
+        NoUI             = false,
+        Callback         = function(v)
+            S.AutoGuardEnabled = v
+            updateAgButton()
+            if v then startAutoGuard() Library:Notify("Auto Guard ON | " .. S.GuardMode)
+            else stopAutoGuard() Library:Notify("Auto Guard disabled") end
+        end,
+    })
+
+    -- ============================================================
+    --  VISUALS UI  (auto dunk, anti fall, anti travel)
+    -- ============================================================
+    VisualsSection:AddToggle('EnableAutoDunk', {
+        Text     = 'Auto Dunk',
+        Default  = false,
+        Callback = function(v)
+            S.AutoDunkEnabled = v
+            Library:Notify("Auto Dunk " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    VisualsSection:AddToggle('EnableAntiFall', {
+        Text     = 'Anti Fall',
+        Default  = false,
+        Callback = function(v)
+            S.AntiFallEnabled = v
+            if v then startAntiFall()
+            else stopAntiFall() end
+            Library:Notify("Anti Fall " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    VisualsSection:AddToggle('EnableAntiTravel', {
+        Text     = 'Anti Travel',
+        Default  = false,
+        Callback = function(v)
+            S.AntiTravelEnabled = v
+            setAntiTravel(v)
+            Library:Notify("Anti Travel " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    -- ============================================================
+    --  SPEED UI
+    -- ============================================================
+    SpeedSection:AddToggle('EnableSpeed', {
+        Text     = 'Enable Walk Speed',
+        Default  = false,
+        Callback = function(v)
+            S.SpeedEnabled = v
+            applySpeed()
+            Library:Notify("Walk Speed " .. (v and "enabled" or "disabled"))
+        end
+    })
+
+    SpeedSection:AddSlider('SpeedBoost', {
+        Text     = 'Speed Amount',
+        Min      = 0, Max = 5, Default = 0,
+        Rounding = 1, Compact = false,
+        Callback = function(v)
+            S.SpeedBoost = v
+            if S.SpeedEnabled then applySpeed() end
+        end
+    })
+
+    -- ============================================================
+    --  SAVE / THEME
+    -- ============================================================
+    SaveManager:SetLibrary(Library)
+    ThemeManager:SetLibrary(Library)
+    SaveManager:IgnoreThemeSettings()
+    ThemeManager:SetFolder("8blaqHub/" .. game_name)
+    SaveManager:SetFolder("8blaqHub/" .. game_name)
+    SaveManager:BuildConfigSection(tabs.config)
+    ThemeManager:ApplyToTab(tabs.config)
+    Library.ToggleKeybind = Enum.KeyCode.RightShift
+end)
